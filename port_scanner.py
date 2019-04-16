@@ -3,7 +3,7 @@ import errno
 from subprocess import check_output
 from socket import error as socket_error
 
-# this function scans all IP addresses present in the network and pings each of them individually at port 8080.
+# this function scans all IP addresses present in the network and pings each of them individually at a given port.
 # if it can download some data, it returns this IP address, assumed to be the one of the server. It returns 0 otherwise
 
 class IPPortScanner():
@@ -11,7 +11,10 @@ class IPPortScanner():
     def __init__(self):
         print("[INFO] looking for a server...")
 
-    def get_server(self):
+    def get_server(self, port):
+        
+        if port != int(port) or port < 0:
+            return -1 
         hostname = socket.gethostname()
         pi_ip = socket.gethostbyname(hostname)
 
@@ -26,11 +29,11 @@ class IPPortScanner():
             sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
             sock.settimeout(0.05)
             try:
-                result = sock.connect((ip, 8080))
+                result = sock.connect((ip, port))
                 try:
-                    get = check_output(['curl', ip + ":8080"], timeout=0.05) # make a cURL call to port 8080 to see if it's open
+                    get = check_output(['curl', ip + ":{port_n}".format(port_n=port)], timeout=0.05) # make a cURL call to port 8080 to see if it's open
                     if get != 0:
-                        print("Found an IP address with port 8080 open and sharing.")
+                        print("Found an IP address with port {port_n} open and sharing.".format(port_n=port))
                         return ip
                 except Exception: # if an IP address has port 8080 closed, an exception will occur and must be ignored
                     continue
